@@ -45,5 +45,5 @@ Q <- read_Q_matrix("test.3.Q")
 so <- sort_by_cluster(Q)
 QQ <- tidy(Q, pops)
 
-plot_admixture(Q, label = TRUE, sort.order = so)
+plot_admixture(QQ, label = TRUE, sort.order = so)
 ```
