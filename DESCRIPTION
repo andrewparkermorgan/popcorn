@@ -1,0 +1,25 @@
+Package: popcorn
+Title: File-Format Wrangler for Population-Based Genetic Data
+Version: 0.0.1
+Authors@R: person("Andrew", "Morgan", email = "andrew.parker.morgan@gmail.com", role = c("aut", "cre"))
+Description: Suite of utilities for reading and manipulating files associated
+    with PLINK, ADMIXTURE, TreeMix &c. At this point it's largely mouse-centric.
+Depends:
+    R (>= 3.0.0)
+Imports:
+    ggplot2,
+    grid,
+    RColorBrewer,
+    tidyr,
+    readr,
+    dplyr,
+    stringr,
+    ape,
+    mouser,
+    admixturegraph
+Suggests:
+    GenomicRanges
+License: MIT
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 5.0.1
