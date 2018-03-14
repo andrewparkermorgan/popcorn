@@ -92,13 +92,13 @@ bootstrap_Q <- function(ql, ...) {
 #' Convert admixture proportions to tidy format.
 #' 
 #' @param Q a matrix of admixture proprtions
-#' @param meta additional sample metadata, with column \code{"iid"} as primary key
+#' @param ... extra arguments; if first one is a data frame, treat it as additional sample metadata,
+#'   with column \code{"iid"} as primary key
 #' @return a dataframe of admixture proportions (and standard errors if available),
 #'   one row per component-individual pair
-#' @param ... extra arguments, ignored
 #' 
 #' @export
-tidy.admixture_Q <- function(Q, meta = NULL, ...) {
+tidy.admixture_Q <- function(Q, ...) {
 
 	if (!inherits(Q, "admixture_Q"))
 		warning("Q may not be a properly-formatted ADMIXTURE result.")
@@ -112,8 +112,12 @@ tidy.admixture_Q <- function(Q, meta = NULL, ...) {
 		qq <- dplyr::inner_join(qq, se)
 	}
 	
-	if (!is.null(meta)) {
-		qq <- dplyr::left_join(qq, meta, by = "iid")
+	extras <- list(...)
+	if (length(extras)) {
+		if (is.data.frame(extras[[1]])) {
+			meta <- tibble::as_tibble(extras[[1]])
+			qq <- dplyr::left_join(qq, meta, by = "iid")
+		}
 	}
 	
 	return(qq)

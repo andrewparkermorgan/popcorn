@@ -4,14 +4,13 @@
 \alias{tidy.admixture_Q}
 \title{Convert admixture proportions to tidy format.}
 \usage{
-\method{tidy}{admixture_Q}(Q, meta = NULL, ...)
+\method{tidy}{admixture_Q}(Q, ...)
 }
 \arguments{
 \item{Q}{a matrix of admixture proprtions}
 
-\item{meta}{additional sample metadata, with column \code{"iid"} as primary key}
-
-\item{...}{extra arguments, ignored}
+\item{...}{extra arguments; if first one is a data frame, treat it as additional sample metadata,
+with column \code{"iid"} as primary key}
 }
 \value{
 a dataframe of admixture proportions (and standard errors if available),
