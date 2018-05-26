@@ -71,12 +71,17 @@ write_pca_result <- function(rez, ff, ...) {
 }
 
 #' @export
-read_pca_result <- function(ff, ...) {
+read_pca_result <- function(ff, header = TRUE, ...) {
 	ff <- gsub("\\.pca$", "", ff)
-	pcs <- readr::read_tsv(paste0(ff, ".pca"))
+	
+	pcs <- tibble::as_tibble(read.table(paste0(ff, ".pca"), header = header, stringsAsFactors = FALSE))
+	if (!header) {
+		colnames(pcs) <- c("iid", paste0("PC", seq_len(ncol(pcs)-1)))
+	}
+	
 	evs <- as.numeric(readr::read_lines(paste0(ff, ".pca.ev")))
 	attr(pcs, "explained") <- evs
-	class(pcs) <- c("pca.result", class(pcs))
+	class(pcs) <- c("pca_result", class(pcs))
 	return(pcs)
 }
 
@@ -141,5 +146,52 @@ get_pca_palette <- function(f, palette = "Paired", ...) {
 	maxcol <- min(n, RColorBrewer::brewer.pal.info[ palette,"maxcolors" ])
 	cluster.palette <- colorRampPalette(RColorBrewer::brewer.pal(maxcol, palette))
 	return(cluster.palette)
+	
+}
+
+#' @export
+vcf_kinship <- function(vcf, samples = NULL, region = NULL, useX = FALSE, method = c("king","grm","plink"), ...) {
+	
+	ff <- tempfile()
+	ffkin <- paste0(ff, ".kin")
+	method <- match.arg(method)
+	if (method == "plink") {
+		kcols <- c("iid1","iid2","ibd0","ibd1","ibd2","K","nsites")
+		mcode <- 0
+	}
+	else if (method == "king") {
+		kcols <- c("iid1","iid2","ibd0","ibd1","ibd2","K","nsites")
+		mcode <- 1
+	}
+	else if (method == "grm") {
+		kcols <- c("iid1","iid2","K")
+		mcode <- 2
+	}
+	
+	cmd <- paste0("akt kin -M", mcode)
+	
+	if (!is.null(region)) {
+		cmd <- paste0(cmd, " -r ", as.character(region)[1])
+	}
+	else if (!useX) {
+		region <- paste0(mouser::chromnames()[1:19], collapse = ",")
+		cmd <- paste0(cmd, " -r ", as.character(region)[1])
+	}
+	
+	if (!is.null(samples)) {
+		sfile <- paste0(ff, ".samples")
+		write.table(as.character(samples), sfile, row.names = FALSE, col.names = FALSE, quote = FALSE)
+		cmd <- paste0(cmd, " -S ", sfile)
+	}
+	
+	cmd <- paste0(cmd, " --force ", vcf[1], " >", ff)
+	message("The command will be:\n", cmd)
+	
+	rez <- system(cmd)
+	
+	kin <- tibble::as_tibble(read.table(ff, col.names = kcols, stringsAsFactors = FALSE))
+	attr(kin, "result") <- ff
+	class(kin) <- c("kinship_result", class(kin))
+	return(kin)
 	
 }

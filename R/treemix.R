@@ -413,11 +413,53 @@ read_f4stats <- function(ff, ...) {
 }
 
 #' @export
+read_Dstats <- function(ff, outgroup = "outgroup", ...) {
+	
+	df <- readr::read_tsv(ff, ...)
+	df <- df[ ,1:9 ]
+	colnames(df) <- c("W","X","Y","nABBA","nBABA","D","Dest","se","Z.value")
+	df$Z <- outgroup
+	df <- df[ ,c("W","X","Y","Z","nABBA","nBABA","D","Dest","se","Z.value") ]
+	
+	df$W <- gsub("\\.bam$", "", df$W)
+	df$X <- gsub("\\.bam$", "", df$X)
+	df$Y <- gsub("\\.bam$", "", df$Y)
+	df$Z <- gsub("\\.bam$", "", df$Z)
+	return(df)
+	
+}
+
+#' @export
 get_Dstats <- function(df, ...) {
 	
 	rez <- df[ ,c("A","B","C","D","fstat","zscore") ]
 	colnames(rez) <- c("W","X","Y","Z","D","Z.value")
 	return(rez)
+	
+}
+
+#' @export
+filter_Dstats <- function(df, taxa, ...) {
+	
+	keep <- df$W %in% taxa
+	keep <- keep & df$X %in% taxa
+	keep <- keep & df$Y %in% taxa
+	keep <- keep & df$Z %in% taxa
+	return( df[ !is.na(keep) & keep, ] )
+	
+}
+
+#' @export
+focus_Dstats <- function(df, pop, outgroup, ...) {
+	
+	df <- subset(df, Z == outgroup & (W == pop[1] | X == pop[1]))
+	swaps <- df$X == pop[1]
+	tmp <- df$W
+	df$W[swaps] <- df$X[swaps]
+	df$X[swaps] <- tmp[swaps]
+	df$D[swaps] <- -1*df$D[swaps]
+	df$Dest[swaps] <- -1*df$Dest[swaps]
+	return(df)
 	
 }
 

@@ -123,6 +123,31 @@ read_freq_plink <- function(ff, ...) {
 	
 }
 
+#' Read ROH report from PLINK
+#' @export
+read_homozyg_plink <- function(ff, ...) {
+	
+	df <- read.table(ff, header = TRUE, stringsAsFactors = FALSE)
+	colnames(df) <- c("fid","iid","phe","chr","left","right","start","end","width.kb","nsites","dens","phom","phet")
+	df <- tibble::as_tibble(df)
+	df <- df[ ,c("iid","chr","left","start","right","end","nsites","dens","phom","phet") ]
+	df$width <- with(df, end-start)
+	df$chr <- factor_chrom(df$chr)
+	return(df)
+	
+}
+
+#' Read estimated inbreeding report from PLINK
+#' @export
+read_het_plink <- function(ff, ...) {
+	
+	df <- read.table(ff, header = TRUE, stringsAsFactors = FALSE)
+	colnames(df) <- c("fid","iid","obs","expect","nhet","fhat")
+	df <- tibble::as_tibble(df)
+	return(df)
+	
+}
+
 #' Read BEAGLE-format IBD segments
 #' 
 #' @export
@@ -131,6 +156,9 @@ read_beagle_ibd <- function(ff, map = NULL, expand = FALSE, as.ranges = FALSE, .
 	ibd <- readr::read_tsv(ff, col_names = FALSE)
 	colnames(ibd) <- c("iid1","p1","iid2","p2","chr","start","end","lod")
 	ibd$chr <- mouser::factor_chrom(ibd$chr)
+	map <- subset(map, !is.na(cM) & cM > 0)
+	dups <- duplicated(map[ ,c("chr","pos") ])
+	map <- map[ !dups, ]
 	
 	if (!is.null(map)) {
 		start.cM <- dplyr::left_join(ibd, map[ ,c("chr","cM","pos") ], by = c("chr" = "chr", "start" = "pos"))
@@ -200,4 +228,82 @@ read_blat_psl <- function(ff, with.header = FALSE, force.chroms = TRUE, ...) {
 	
 	return(df)
 		
+}
+
+# Write genomic intervals in BED format
+#' @export
+write_bed <- function(x, ff = "/dev/stdout", extra = TRUE, is.zero.based = FALSE, ...) {
+	
+	if (inherits(x, "GRanges")) {
+		x <- as.data.frame(x)
+		colnames(x)[1] <- "chr"
+		x$start <- pmax(x$start - 1L, 1L)
+	}
+	cn <- colnames(x)
+	if ("seqnames" %in% cn) {
+		cn[ cn == "seqnames" ] <- "chr"
+		colnames(x) <- cn
+	}
+	
+	if (!is.zero.based) {
+		x$start <- pmax(x$start - 1L, 1L)
+	}
+	
+	cols <- c("chr","start","end","name","score","strand")
+	others <- cn[ !(cn %in% cols) ]
+	keep.cols <- cols[ sort(which(cols %in% cn)) ]
+	if (extra)
+		write.cols <- c(keep.cols, others)
+	else
+		write.cols <- keep.cols
+	write.table(x[ ,write.cols ], ff, 
+				col.names = FALSE, row.names = FALSE, quote = FALSE, sep = "\t")
+	
+}
+
+#' Read genomic intervals in BED format
+#' @export
+read_bed <- function(ff, ..., force.chroms = TRUE) {
+	
+	df <- readr::read_tsv(ff, col_names = FALSE, comment = "#", ...)
+	idx <- 1:min(ncol(df), 6)
+	colnames(df)[ idx ] <- c("chr","start","end","name","score","strand")[ idx ]
+	if (force.chroms)
+		df$chr <- mouser::factor_chrom(df$chr)
+	return(df)
+	
+}
+
+#' Read output from my \code{coverage.py} script
+#' 
+#' @param path name of file to read
+#' @param scrub if \code{TRUE}, remove trailing suffixes (\code{*.sorted}, \code{*.merged} etc) from individual IDs
+#' @param as.ranges if \code{TRUE}, convert to a \code{GRanges} object
+#' 
+#' @details Expected input is a BED-like file with columns *chr*, *start*, *end*, *iid*, *raw read count*,
+#' 	*normalized read count* and optionally *count of MQ0 reads*, *proportion of total reads which are MQ0*.
+#' 
+#' @return a dataframe
+read_coverage <- function(path, scrub = TRUE, as.ranges = FALSE, has.MQ0 = FALSE, ...) {
+	
+	counts <- tryCatch({
+		readr::read_tsv(path, col_names = FALSE, comment = "#")
+	},
+	error = function(e) {
+		read.table(path, header = FALSE, comment.char = "#")
+	})
+	colnames(counts)[1:6] <- c("chr","start","end","iid","nreads","depth")
+	if (has.MQ0)
+		colnames(counts)[7:8] <- c("MQ0","MQ0.prop")
+	
+	if (scrub)
+		counts$iid <- gsub("\\.\\w+$", "", counts$iid)
+	
+	if (as.ranges)
+		counts <- GenomicRanges::makeGRangesFromDataFrame(counts, starts.in.df.are.0based = TRUE,
+														  keep.extra.columns = TRUE)
+	
+	attr(counts, "filename") <- normalizePath(path)
+	return(counts)
+	
 }

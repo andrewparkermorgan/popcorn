@@ -54,6 +54,65 @@ read_Q_matrix <- function(infile, ...) {
 	
 }
 
+#' @export
+read_Fst_matrix <- function(infile, melted = TRUE, lower.tri = TRUE, ...) {
+	
+	infile <- infile[1]
+	
+	message("Reading Fst matrix from <", infile, "> ...")
+	lines <- readLines(infile)
+	popfile <- gsub("\\.\\d+\\.out$", ".pop", infile)
+	
+	keep <- grepl("^Pop\\d+", lines, perl = TRUE)
+	lines <- lines[keep]
+	ll <- stringr::str_split(lines, "\\t")
+	
+	npop <- length(ll[[1]])+1
+	if (file.exists(popfile)) {
+		message("Reading population labels from <", popfile, "> ...")
+		pops <- readr::read_tsv(popfile, col_names = "pop", na = "-", progress = FALSE)$pop
+		pops <- pops[ !is.na(pops) ]
+		pops <- pops[ !duplicated(pops) ]
+		po <- sort(pops)
+	}
+	else {
+		message("Using default population labels from ADMIXTURE ...")
+		pops <- ll[[1]]
+		po <- pops
+	}
+	
+	Fst <- matrix(0.0, nrow = npop, ncol = npop)
+	for (ii in seq_along(ll[-(1:2)])) {
+		values <- as.numeric( ll[[ ii+2 ]][ -1 ] )
+		Fst[ ii+1,1:length(values) ] <- values
+	}
+	
+	Fst <- Fst + t(Fst)
+	rownames(Fst) <- colnames(Fst) <- pops
+	cl <- stats::hclust( stats::as.dist(Fst+0.001), method = "centroid" )
+	o <- cl$order
+	po <- po[o]
+	Fst <- Fst[ po,po ]
+	
+	if (melted) {
+		
+		if (lower.tri) {
+			Fst[ upper.tri(Fst) ] <- NA
+		}
+		Fst <- bind_cols(pop = rownames(Fst), as_tibble(Fst))
+		Fst <- tidyr::gather(Fst, key = other, value = fst, -pop)
+		Fst <- subset(Fst, !is.na(fst))
+		Fst$pop <- factor(Fst$pop, levels = po)
+		Fst$other <- factor(Fst$other, levels = po)
+		
+	}
+	
+	attr(Fst, "source") <- infile
+	attr(Fst, "clustering") <- cl
+	return(Fst)
+	
+}
+
 # deprecated and ill-conceived
 read_Q_bootstraps <- function(prefix, k, ...) {
 	
