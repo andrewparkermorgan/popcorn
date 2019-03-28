@@ -4,28 +4,38 @@
 #' Read ancestry proportions (`Q-matrix`) from ADMIXTURE run
 #' 
 #' @param infile path to matrix of ancestry proportions (*.Q file) from ADMIXTURE run
+#' @param K number of clusters; if \code{NULL} (default), attempt to infer from filename
+#' @param iids sample IDs (in same order as rows in matrix); if \code{NULL} (default),
+#'  look for corresponding *.fam file
 #' @param ... extra arguments, ignored
-#' @details Assumes that estimation was performed from a PLINK *.bed file,
-#' 	and that the corresponding *.fam file resides in same directory as output.
-#' 	If standard errors for ancestrty proportions are availbale (*.Q_se file),
-#' 	they are read as well and stored in \code{attr(result, "se")}.
+#' @details If \code{K} and \code{iids} are both \code{NULL} (default), assumes that
+#'  estimation was performed from a PLINK *.bed file, and that the corresponding *.fam
+#'  file resides in same directory as output. If standard errors for ancestrty proportions
+#'  are availbale (*.Q_se file), they are read as well and stored in \code{attr(result, "se")}.
 #' 
 #' @export
-read_Q_matrix <- function(infile, ...) {
+read_Q_matrix <- function(infile, K = NULL, iids = NULL, ...) {
 	
 	infile <- infile[1]
-	if (grepl("\\.\\d+\\.Q$", infile)) {
-		fam.path <- gsub("\\.\\d+\\.Q$",".fam", infile)
+	if (is.null(iids)) {
+		if (grepl("\\.\\d+\\.Q$", infile)) {
+			fam.path <- gsub("\\.\\d+\\.Q$",".fam", infile)
+		}
+		else {
+			fam.path <- paste0(infile, ".fam")
+			infile <- paste0(infile, ".Q")
+		}
 	}
 	else {
-		fam.path <- paste0(infile, ".fam")
-		infile <- paste0(infile, ".Q")
+		fam.path <- FALSE
 	}
+	
 	sefile <- paste0(infile, "_se")
 	do.se <- file.exists(sefile)
 	
 	# figure out how many clusters
-	K <- as.integer(stringr::str_match(infile, "([0-9]+)\\.Q$")[,2])
+	if (is.null(K))
+		K <- as.integer(stringr::str_match(infile, "([0-9]+)\\.Q$")[,2])
 	
 	message("Reading ancestry proportions from <", infile, ">...")
 	Q <- readr::read_delim(infile, delim =" ", col_names = FALSE)
@@ -35,9 +45,15 @@ read_Q_matrix <- function(infile, ...) {
 		se <- readr::read_delim(sefile, delim = " ", col_names = FALSE)
 	}
 	
-	message("Reading sample metadata from <", fam.path, ">...")
-	fam <- read_fam(fam.path)
-	
+	if (fam.path) {
+		message("Reading sample metadata from <", fam.path, ">...")
+		fam <- read_fam(fam.path)
+	}
+	else {
+		message("Using input sample IDs ...")
+		fam <- tibble::tibble(fid = iids, iid = iids, mom = 0, dad = 0, sex = 0, pheno = -9)
+	}
+		
 	#rownames(Q) <- fam$iid
 	colnames(Q) <- paste0("pop", seq_len(ncol(Q)))
 	Q <- dplyr::bind_cols(iid = fam$iid, fid = as.character(fam$fid), Q)
@@ -209,7 +225,7 @@ plot_admixture <- function(Q, label = FALSE, sort.order = NULL, pop.order = NULL
 	
 	
 	if (inherits(Q, "admixture_Q"))
-		qq <- tidy.admixture_Q(Q, meta = meta)
+		qq <- tidy.admixture_Q(Q, ...)
 	else
 		qq <- tibble::as_tibble(Q)
 	

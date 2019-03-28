@@ -49,3 +49,30 @@ scale_combo <- function(..., pal = "Spectral") {
 		  scale_shape_repeater(...) )
 	
 }
+
+#' Clean-looking ggplot2 theme, similar to `theme_classic()`
+#' @export
+theme_nice <- function(...) {
+	
+	ggplot2::theme_classic(...) +
+		ggplot2::theme(
+			axis.line.x = ggplot2::element_line(), 
+			axis.line.y = ggplot2::element_line(),
+			strip.text = ggplot2::element_text(face = "bold"), 
+			strip.background = ggplot2::element_blank(),
+			legend.background = ggplot2::element_blank(), 
+			legend.key.size = grid::unit(0.9, "lines"),
+			plot.title = ggplot2::element_text(hjust = 0.5))
+	
+}
+
+#' Make ggplot2 x-axis labels slanted
+#' @export
+theme_slanty_x <- function(..., angle = 45) {
+	
+	ggplot2::theme(
+		axis.text.x = ggplot2::element_text(angle = angle, hjust = 1),
+		axis.title.x = ggplot2::element_blank())
+	
+	
+}

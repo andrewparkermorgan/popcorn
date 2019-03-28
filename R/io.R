@@ -153,7 +153,7 @@ read_het_plink <- function(ff, ...) {
 #' @export
 read_beagle_ibd <- function(ff, map = NULL, expand = FALSE, as.ranges = FALSE, ...) {
 	
-	ibd <- readr::read_tsv(ff, col_names = FALSE)
+	ibd <- readr::read_tsv(ff, col_names = FALSE)[ ,1:8 ]
 	colnames(ibd) <- c("iid1","p1","iid2","p2","chr","start","end","lod")
 	ibd$chr <- mouser::factor_chrom(ibd$chr)
 	map <- subset(map, !is.na(cM) & cM > 0)
@@ -197,6 +197,16 @@ make_ibd_matrix <- function(df, iids = NULL, ...) {
 	
 }
 
+#' @export
+read_ibdne_result <- function(ff, ...) {
+
+	ne <- readr::read_tsv(ff, ...)
+	colnames(ne) <- c("gen","Ne","lo","hi")[ seq_len(ncol(ne)) ]
+	ne$gen <- as.integer(gsub("^G","", ne$gen))
+	return(ne)
+	
+}
+
 #' Read `bcftools roh` output (mode `-Or``)
 #' 
 #' @export
@@ -219,7 +229,9 @@ read_blat_psl <- function(ff, with.header = FALSE, force.chroms = TRUE, ...) {
 	df <- readr::read_tsv(ff, skip = nskip,
 						  col_names = c("matches","mismatches","rep.matches","ns","qinserts","qbpins",
 						  			  "tinserts","tbpins","strand","qname","qsize","qstart","qend",
-						  			  "tname","tsize","tstart","tend","nblocks","blen","qstarts","tstarts"))
+						  			  "tname","tsize","tstart","tend","nblocks","blen","qstarts","tstarts"),
+						  col_types = "iiiiiiiicciiiciiiiccc")
+	
 	if (force.chroms) {
 		df$chr <- mouser::factor_chrom(df$tname)
 		df$start <- df$tstart
@@ -305,5 +317,24 @@ read_coverage <- function(path, scrub = TRUE, as.ranges = FALSE, has.MQ0 = FALSE
 	
 	attr(counts, "filename") <- normalizePath(path)
 	return(counts)
+	
+}
+
+#' @export
+read_psmc_result <- function(ff, niter = 25, mu = 1e-8, s = 100, ...) {
+	
+	cmd <- paste0("awk '/RD.", niter, "/{f=1}/\\/\\//{f=0}f&&/RS/{print $0;}' ", ff)
+	rez <- readr::read_tsv(pipe(cmd), col_names = c("what","k","t_k","lambda_k","pi_k","sum_A_kl","A_kk"))
+	maxk <- max(rez$k)
+	nboot <- sum(rez$k == maxk)
+	rez$repno <- floor(seq_len(nrow(rez))/maxk)
+	
+	cmd <- paste0("awk 'BEGIN{OFS=\"\\t\";}/RD.", niter, "/{f=1}/\\/\\//{f=0}f&&/TR/{print $2,$3}' ", ff)
+	pis <- readr::read_tsv(pipe(cmd), col_names = c("theta_0","rho_0"))
+	pis$repno <- seq_len(nrow(pis))-1
+
+	rez <- dplyr::left_join(rez, pis) %>%
+		mutate(Nk = (lambda_k*theta_0/s)/(4*mu))
+	return(rez)
 	
 }

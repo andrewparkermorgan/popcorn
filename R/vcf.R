@@ -51,7 +51,7 @@ pca_vcf <- function(vcf, samples = NULL, skeleton = NULL, K = 20, meta = NULL, r
 	
 	rez <- system(cmd)
 	
-	pc <- tibble::as_tibble(read.table(ff, col.names = c("iid", paste0("PC", seq_len(K)))))
+	pc <- tibble::as_tibble(read.table(ff, col.names = c("iid", paste0("PC", seq_len(K))), stringsAsFactors = FALSE))
 	eigvals <- as.numeric(readr::read_lines(ffev))^2
 	if (!is.null(meta)) {
 		pc <- dplyr::left_join(pc, meta)
@@ -71,18 +71,45 @@ write_pca_result <- function(rez, ff, ...) {
 }
 
 #' @export
-read_pca_result <- function(ff, header = TRUE, ...) {
-	ff <- gsub("\\.pca$", "", ff)
+read_pca_result <- function(ff, header = TRUE, plink = FALSE, ...) {
 	
-	pcs <- tibble::as_tibble(read.table(paste0(ff, ".pca"), header = header, stringsAsFactors = FALSE))
-	if (!header) {
-		colnames(pcs) <- c("iid", paste0("PC", seq_len(ncol(pcs)-1)))
+	if (plink) {
+		ff <- gsub("\\.eigenv[ae][lc]$", "", ff)
+		
+		pcs <- tibble::as_tibble(read.table(paste0(ff, ".eigenvec"), header = FALSE, stringsAsFactors = FALSE, comment.char = "#"))
+		colnames(pcs) <- c("iid","fid", paste0("PC", seq_len(ncol(pcs)-2)))
+		
+		evs <- as.numeric(readr::read_lines(paste0(ff, ".eigenval")))
+		eps <- 1e-3
+		if (abs(sum(evs) - 1) > eps) {
+			evs <- evs/sum(evs)
+		}
+	}
+	else {
+		ff <- gsub("\\.pca$", "", ff)
+		
+		pcs <- tibble::as_tibble(read.table(paste0(ff, ".pca"), header = header, stringsAsFactors = FALSE))
+		if (!header) {
+			colnames(pcs) <- c("iid", paste0("PC", seq_len(ncol(pcs)-1)))
+		}
+		
+		evs <- as.numeric(readr::read_lines(paste0(ff, ".pca.ev")))
+		eps <- 1e-3
+		if (abs(sum(evs) - 1) > eps) {
+			evs <- evs/sum(evs)
+		}
 	}
 	
-	evs <- as.numeric(readr::read_lines(paste0(ff, ".pca.ev")))
 	attr(pcs, "explained") <- evs
 	class(pcs) <- c("pca_result", class(pcs))
 	return(pcs)
+}
+
+#' @export
+var_explained <- function(pc, ...) {
+	
+	attr(pc, "explained")
+	
 }
 
 #' @export
@@ -139,7 +166,7 @@ pc_label <- function(x, k = 1, ...) {
 #' @export
 get_pca_palette <- function(f, palette = "Paired", ...) {
 	
-	if (is.factor(f))
+	if (!is.factor(f))
 		f <- factor(f)
 	
 	n <- nlevels(f)
