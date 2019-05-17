@@ -185,15 +185,20 @@ read_beagle_ibd <- function(ff, map = NULL, expand = FALSE, as.ranges = FALSE, .
 	
 }
 
-make_ibd_matrix <- function(df, iids = NULL, ...) {
+#' @export
+read_refinedIBD <- function(ff, expand = FALSE, row_ids = TRUE, ...) {
 	
-	if (is.null(iids))
-		iids <- union(df$iid1, df$iid2)
+	ibd <- readr::read_tsv(ff, col_names = c("iid1","p1","iid2","p2","chr","start","end","lod","cM"))
+	ibd$.row <- seq_len(nrow(ibd))
+	if (expand) {
+		ibd2 <- ibd
+		tmp <- ibd2$iid1
+		ibd2$iid1 <- ibd2$iid2
+		ibd2$iid2 <- tmp
+		ibd <- dplyr::bind_rows(ibd, ibd2)
+	}
 	
-	df$iid1 <- factor(df$iid1, iids)
-	df$iid2 <- factor(df$iid2, iids)
-	X <- with(df, tapply(width.cM, list(iid1, iid2), sum, na.rm = TRUE))
-	return(X)
+	return(ibd)
 	
 }
 
@@ -334,7 +339,7 @@ read_psmc_result <- function(ff, niter = 25, mu = 1e-8, s = 100, ...) {
 	pis$repno <- seq_len(nrow(pis))-1
 
 	rez <- dplyr::left_join(rez, pis) %>%
-		mutate(Nk = (lambda_k*theta_0/s)/(4*mu))
+		dplyr::mutate(Nk = (lambda_k*theta_0/s)/(4*mu))
 	return(rez)
 	
 }

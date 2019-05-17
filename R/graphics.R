@@ -67,12 +67,21 @@ theme_nice <- function(...) {
 }
 
 #' Make ggplot2 x-axis labels slanted
+#' 
+#' @param angle angle at which to print labels (in degrees); default 45 degrees
+#' @param suppress_title logical; if \code{TRUE} (default), don't show x-axis title
+#' 
 #' @export
-theme_slanty_x <- function(..., angle = 45) {
+theme_slanty_x <- function(..., angle = 45, suppress_title = TRUE) {
+	
+	if (suppress_title)
+		titlefn <- ggplot2::element_blank()
+	else
+		titlefn <- ggplot2::element_text()
 	
 	ggplot2::theme(
 		axis.text.x = ggplot2::element_text(angle = angle, hjust = 1),
-		axis.title.x = ggplot2::element_blank())
+		axis.title.x = title_fn)
 	
 	
 }

@@ -9,4 +9,3 @@ read_loglik_files(prefix, ...)
 \description{
 Read log-likelihoods from ADMIXTURE runs
 }
-

@@ -25,4 +25,3 @@ A `dplyr`-friendly equivalent to the old `plyr::ldply()`
 Hard work of combining results is done under the hood by \code{dplyr::bind_rows()}; consult that
     function's documentation to see how incomplete rows, missing columns, conflicting data types, etc. are handled.
 }
-

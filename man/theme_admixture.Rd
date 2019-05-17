@@ -9,4 +9,3 @@ theme_admixture(...)
 \description{
 A ggplot theme for ADMIXTURE plots
 }
-

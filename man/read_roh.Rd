@@ -9,4 +9,3 @@ read_roh(ff, force.chroms = TRUE, ...)
 \description{
 Read `bcftools roh` output (mode `-Or``)
 }
-

@@ -18,4 +18,3 @@ Combined shape and colour scale for uniquely identifying many groups of points
 This follows the usual convention on PCA plots of denoting populations by a shape-colour combination,
   so that similar colours are more easily discriminated when there are many (>10) groups of points on the plot.
 }
-

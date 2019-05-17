@@ -16,4 +16,3 @@ a list with components including \code{m} (number of migration edges), \code{lli
 \description{
 Read TreeMix output files
 }
-

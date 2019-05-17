@@ -17,6 +17,7 @@
 read_Q_matrix <- function(infile, K = NULL, iids = NULL, ...) {
 	
 	infile <- infile[1]
+	fam.path <- NULL
 	if (is.null(iids)) {
 		if (grepl("\\.\\d+\\.Q$", infile)) {
 			fam.path <- gsub("\\.\\d+\\.Q$",".fam", infile)
@@ -25,9 +26,6 @@ read_Q_matrix <- function(infile, K = NULL, iids = NULL, ...) {
 			fam.path <- paste0(infile, ".fam")
 			infile <- paste0(infile, ".Q")
 		}
-	}
-	else {
-		fam.path <- FALSE
 	}
 	
 	sefile <- paste0(infile, "_se")
@@ -45,7 +43,7 @@ read_Q_matrix <- function(infile, K = NULL, iids = NULL, ...) {
 		se <- readr::read_delim(sefile, delim = " ", col_names = FALSE)
 	}
 	
-	if (fam.path) {
+	if (!is.null(fam.path)){
 		message("Reading sample metadata from <", fam.path, ">...")
 		fam <- read_fam(fam.path)
 	}
@@ -115,7 +113,7 @@ read_Fst_matrix <- function(infile, melted = TRUE, lower.tri = TRUE, ...) {
 		if (lower.tri) {
 			Fst[ upper.tri(Fst) ] <- NA
 		}
-		Fst <- bind_cols(pop = rownames(Fst), as_tibble(Fst))
+		Fst <- dplyr::bind_cols(pop = rownames(Fst), tibble::as_tibble(Fst))
 		Fst <- tidyr::gather(Fst, key = other, value = fst, -pop)
 		Fst <- subset(Fst, !is.na(fst))
 		Fst$pop <- factor(Fst$pop, levels = po)
@@ -173,17 +171,22 @@ bootstrap_Q <- function(ql, ...) {
 #'   one row per component-individual pair
 #' 
 #' @export
+tidy <- function(Q, ...){
+	UseMethod("tidy")
+}
+
+#' @export
 tidy.admixture_Q <- function(Q, ...) {
 
 	if (!inherits(Q, "admixture_Q"))
 		warning("Q may not be a properly-formatted ADMIXTURE result.")
 	
 	K <- attr(Q, "K")
-	qq <- mutate(tidyr::gather(Q, key = variable, value = value, -iid, -fid), K = K)
+	qq <- dplyr:: mutate(tidyr::gather(Q, key = variable, value = value, -iid, -fid), K = K)
 	
 	if (!is.null(attr(Q, "se"))) {
 		se <- attr(Q, "se")
-		se <- mutate(tidyr::gather(se, key = variable, value = se, -iid, -fid), K = K)
+		se <- dplyr::mutate(tidyr::gather(se, key = variable, value = se, -iid, -fid), K = K)
 		qq <- dplyr::inner_join(qq, se)
 	}
 	

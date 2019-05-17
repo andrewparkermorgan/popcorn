@@ -22,4 +22,3 @@ a \code{ggplot2} plot
 \description{
 Plot population tree
 }
-

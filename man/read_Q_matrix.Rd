@@ -4,10 +4,15 @@
 \alias{read_Q_matrix}
 \title{Read ancestry proportions (`Q-matrix`) from ADMIXTURE run}
 \usage{
-read_Q_matrix(infile, ...)
+read_Q_matrix(infile, K = NULL, iids = NULL, ...)
 }
 \arguments{
 \item{infile}{path to matrix of ancestry proportions (*.Q file) from ADMIXTURE run}
+
+\item{K}{number of clusters; if \code{NULL} (default), attempt to infer from filename}
+
+\item{iids}{sample IDs (in same order as rows in matrix); if \code{NULL} (default),
+look for corresponding *.fam file}
 
 \item{...}{extra arguments, ignored}
 }
@@ -15,9 +20,8 @@ read_Q_matrix(infile, ...)
 Read ancestry proportions (`Q-matrix`) from ADMIXTURE run
 }
 \details{
-Assumes that estimation was performed from a PLINK *.bed file,
-	and that the corresponding *.fam file resides in same directory as output.
-	If standard errors for ancestrty proportions are availbale (*.Q_se file),
-	they are read as well and stored in \code{attr(result, "se")}.
+If \code{K} and \code{iids} are both \code{NULL} (default), assumes that
+ estimation was performed from a PLINK *.bed file, and that the corresponding *.fam
+ file resides in same directory as output. If standard errors for ancestrty proportions
+ are availbale (*.Q_se file), they are read as well and stored in \code{attr(result, "se")}.
 }
-

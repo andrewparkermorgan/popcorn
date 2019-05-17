@@ -29,4 +29,3 @@ Perform PCA on a VCF file using `akt pca` and consume result
 This function generates a command-line call to \code{akt pca}, whose output is directed to a set of
 	temporary files and then read into the \code{R} session.
 }
-

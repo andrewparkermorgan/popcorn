@@ -19,4 +19,3 @@ Read a PLINK family (*.fam) file
 A *.fam file should have columns family ID, individual ID, mom ID, dad ID, sex, phenotype.  PLINK uses
   special value -9 to denote missing phenotype, for some reason, while 0=missing for mom and dad ID.
 }
-

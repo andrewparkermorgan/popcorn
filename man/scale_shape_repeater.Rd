@@ -12,4 +12,3 @@ scale_shape_repeater(...)
 \description{
 Discrete scale of different point shapes that repeats
 }
-

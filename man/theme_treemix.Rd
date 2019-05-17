@@ -9,4 +9,3 @@ theme_treemix(...)
 \description{
 Plotting theme for TreeMix population trees
 }
-

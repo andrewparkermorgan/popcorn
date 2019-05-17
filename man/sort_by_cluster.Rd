@@ -19,4 +19,3 @@ character vector of individual IDs in sorted order
 \description{
 Sort samples by admixture components using crude heuristics
 }
-

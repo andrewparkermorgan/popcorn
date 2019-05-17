@@ -19,4 +19,3 @@ Read a PLINK marker map (*.bim) file
 A *.bim file should have columns chromosome, marker ID, genetic position (cM), physical position,
   allele 1 (A1=alternate allele), allele 2 (A2=reference allele).
 }
-
