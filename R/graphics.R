@@ -1,25 +1,51 @@
 ## graphics.R
 
+#' @export
+repeat_shapes <- function(n, filled = FALSE) {
+	
+	if (!is.numeric(n) & length(n) > 1)
+		n <- length(n)
+	
+	if (!filled) {
+		allshapes <- c(0:10, 15:18)
+	}
+	else {
+		allshapes <- c(3,4,8,15:18)
+	}
+	
+	maxn <- length(allshapes)
+	
+	if (n > maxn)
+		shapes <- allshapes[ rep(seq_len(maxn), length.out = n) ]
+	else
+		shapes <- allshapes[ seq_len(n) ]
+	return(shapes)
+
+}
+
+#' @export
+repeat_colours <- function(n, palette = "Set1") {
+
+	if (!is.numeric(n) & length(n) > 1)
+		n <- length(n)
+	
+	maxn <- RColorBrewer::brewer.pal.info[palette,"maxcolors"]-2
+	if (maxn < n)
+		cols <- RColorBrewer::brewer.pal(maxn, palette)[ rep(seq_len(maxn), length.out = n) ]
+	else
+		cols <- RColorBrewer::brewer.pal(n, palette)
+	return(cols)
+	
+}
+
 #' Discrete scale of different point shapes that repeats
 #' 
 #' @param ... passed through to underlying \code{ggplot2::scale_...()} functions
 #' 
 #' @export
-scale_shape_repeater <- function(...) {
+scale_shape_repeater <- function(..., filled = FALSE) {
 	
-	.shapes <- function(n) {
-		allshapes <- c(0:10, 15:18)
-		maxn <- length(allshapes)
-		#function(n) {
-		if (n > maxn)
-			shapes <- allshapes[ rep(seq_len(maxn), length.out = n) ]
-		else
-			shapes <- allshapes[ seq_len(n) ]
-		return(shapes)
-		#}
-	}
-	
-	ggplot2::discrete_scale("shape", "shape_repeater", .shapes, ...)
+	ggplot2::discrete_scale("shape", "shape_repeater", function(n) repeat_shapes(n, filled), ...)
 	
 }
 
@@ -33,19 +59,7 @@ scale_shape_repeater <- function(...) {
 #' @export
 scale_combo <- function(..., pal = "Spectral") {
 	
-	.cols <- function(n) {
-		#function(n) {
-		maxn <- RColorBrewer::brewer.pal.info[pal,"maxcolors"]-2
-		if (maxn < n)
-			cols <- RColorBrewer::brewer.pal(maxn, pal)[ rep(seq_len(maxn), length.out = n) ]
-		else
-			cols <- RColorBrewer::brewer.pal(n, pal)
-		return(cols)
-		#}
-	}
-	
-	
-	list( ggplot2::discrete_scale("colour", "my_colour", .cols, ...),
+	list( ggplot2::discrete_scale("colour", "my_colour", repeat_colours, ...),
 		  scale_shape_repeater(...) )
 	
 }
@@ -81,7 +95,7 @@ theme_slanty_x <- function(..., angle = 45, suppress_title = TRUE) {
 	
 	ggplot2::theme(
 		axis.text.x = ggplot2::element_text(angle = angle, hjust = 1),
-		axis.title.x = title_fn)
+		axis.title.x = titlefn)
 	
 	
 }

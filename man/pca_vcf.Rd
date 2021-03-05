@@ -4,7 +4,7 @@
 \alias{pca_vcf}
 \title{Perform PCA on a VCF file using `akt pca` and consume result}
 \usage{
-pca_vcf(vcf, samples = NULL, skeleton = NULL, K = 20, meta = NULL,
+pca_vcf(vcf, samples = NULL, skeleton = NULL, K = 10, meta = NULL,
   region = NULL, useX = FALSE, ...)
 }
 \arguments{

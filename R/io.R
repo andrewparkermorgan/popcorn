@@ -26,7 +26,13 @@
 #' @export
 read_fam <- function(ff, ...) {
 	
-	fam <- tibble::as_tibble(read.table(ff, header = FALSE, stringsAsFactors = FALSE))
+	fam <- tryCatch({
+		readr::read_tsv(ff, col_names = FALSE)
+	},
+	error = function(e) {
+		tibble::as_tibble(read.table(ff, header = FALSE, stringsAsFactors = FALSE))
+	})
+	
 	cols <- c("fid","iid","mom","dad","sex","pheno")
 	nc <- min(length(cols), ncol(fam))
 	colnames(fam)[ 1:nc ] <- cols[1:nc]
@@ -119,6 +125,61 @@ read_freq_plink <- function(ff, ...) {
 	df <- tibble::as_tibble(df)
 	#print(head(df))
 	df$chr <- factor_chrom(df$chr)
+	return(df)
+	
+}
+
+#' @export
+read_freq_plink2 <- function(ff, force_chroms = TRUE, ...) {
+	
+	df <- readr::read_tsv(ff, col_types = "ccccdi")
+	colnames(df) <- c("chr","marker","ref","alt","freq","nobs")
+	
+	if (force_chroms) {
+		df$chr <- mouser::factor_chrom(df$chr)
+	}
+	return(df)
+	
+}
+
+#' @export
+read_het_plink2 <- function(ff, ...) {
+	
+	#FID    IID     O(HOM)  E(HOM)  OBS_CT  F
+	df <- readr::read_tsv(ff, col_types = c("ccidid"))
+	colnames(df) <- c("fid","iid","hom_obs","hom_expect","nobs","f_hat")
+	return(df)
+	
+}
+
+#' @export
+read_missing_plink2 <- function(ff, what = c("sample","variant"), force_chroms = TRUE, ...) {
+	
+	what <- match.arg(what)
+	
+	if (what == "sample") {
+		df <- readr::read_tsv(ff, col_types = "cciid")
+		colnames(df) <- c("fid","iid","nmiss","nobs","fmiss")
+	}
+	else if (what == "variant") {
+		df <- readr::read_tsv(ff, col_types = "cciid")
+		colnames(df) <- c("chr","marker","nmiss","nobs","fmiss")
+		if (force_chroms) {
+			df$chr <- mouser::factor_chrom(df$chr)
+		}
+	}
+	
+	return(df)
+	
+}
+
+#' @export
+read_geno_summary_plink2 <- function(ff, ...) {
+	
+	df <- readr::read_tsv(ff, col_types = c("cciiiiiiiiii"))
+	colnames(df) <- c("fid","iid","n_homref","n_homalt","n_het",
+					  "n_diploid_ti","n_diploid_tv","n_diploid_other","n_diploid_singleton",
+					  "n_haploid_ref","n_haploid_alt","n_miss")
 	return(df)
 	
 }

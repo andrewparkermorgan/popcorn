@@ -16,7 +16,7 @@
 #' 	temporary files and then read into the \code{R} session.
 #' 	 	
 #' @export
-pca_vcf <- function(vcf, samples = NULL, skeleton = NULL, K = 20, meta = NULL, region = NULL, useX = FALSE, ...) {
+pca_vcf <- function(vcf, samples = NULL, skeleton = NULL, K = 10, meta = NULL, region = NULL, useX = FALSE, ...) {
 	
 	ff <- tempfile()
 	ffev <- paste0(ff, ".ev")

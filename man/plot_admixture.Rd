@@ -4,7 +4,7 @@
 \alias{plot_admixture}
 \title{Make standard stacked-bars plot of ancestry proportions.}
 \usage{
-plot_admixture(Q, label = FALSE, sort.order = NULL, pop.order = NULL,
+plot_admixture(Q, label = FALSE, sort_order = NULL, pop_order = NULL,
   ...)
 }
 \arguments{
@@ -12,9 +12,9 @@ plot_admixture(Q, label = FALSE, sort.order = NULL, pop.order = NULL,
 
 \item{label}{show individual IDs along axis}
 
-\item{sort.order}{apply pre-determined sort order to individuals, eg. by cluster membership}
+\item{sort_order}{apply pre-determined sort order to individuals, eg. by cluster membership}
 
-\item{pop.order}{named vector to map arbitrary population labels ('pop1') onto meaningful ones}
+\item{pop_order}{named vector to map arbitrary population labels ('pop1') onto meaningful ones}
 
 \item{...}{extra arguments, ignored}
 }

@@ -219,12 +219,12 @@ read_loglik_files <- function(prefix, ...) {
 #' 
 #' @param Q a matrix of admixture proportions, melted or not
 #' @param label show individual IDs along axis
-#' @param sort.order apply pre-determined sort order to individuals, eg. by cluster membership
-#' @param pop.order named vector to map arbitrary population labels ('pop1') onto meaningful ones
+#' @param sort_order apply pre-determined sort order to individuals, eg. by cluster membership
+#' @param pop_order named vector to map arbitrary population labels ('pop1') onto meaningful ones
 #' @param ... extra arguments, ignored
 #' 
 #' @export
-plot_admixture <- function(Q, label = FALSE, sort.order = NULL, pop.order = NULL, ...) {
+plot_admixture <- function(Q, label = FALSE, sort_order = NULL, pop_order = NULL, ...) {
 	
 	
 	if (inherits(Q, "admixture_Q"))
@@ -232,12 +232,12 @@ plot_admixture <- function(Q, label = FALSE, sort.order = NULL, pop.order = NULL
 	else
 		qq <- tibble::as_tibble(Q)
 	
-	if (!is.null(pop.order)) {
-		qq$variable <- factor(qq$variable, labels = pop.order)
-		levels(qq$variable) <- names(pop.order)
+	if (!is.null(pop_order)) {
+		qq$variable <- factor(qq$variable, labels = pop_order)
+		levels(qq$variable) <- names(pop_order)
 	}
-	if (!is.null(sort.order)) {
-		qq$iid <- factor(qq$iid, sort.order)
+	if (!is.null(sort_order)) {
+		qq$iid <- factor(qq$iid, sort_order)
 	}
 	
 	qq <- dplyr::arrange(qq, variable)
@@ -246,6 +246,96 @@ plot_admixture <- function(Q, label = FALSE, sort.order = NULL, pop.order = NULL
 		theme_admixture()
 	
 	if (!label)
+		p0 <- p0 +
+		ggplot2::theme(axis.ticks.x = ggplot2::element_blank(),
+					   axis.text.x = ggplot2::element_blank())
+	
+	return(p0)
+	
+}
+
+#' Make stacked-bar plot of ancestry proportions, with population labels
+#' 
+#' @param Q a matrix of admixture proportions, melted or not; must have a column `pop` with population labels
+#' @param label show individual IDs along axis
+#' @param sort_order pre-determined sort order for individuals, eg. by cluster membership
+#' @param pop_order pre-determined sort order for populations
+#' @param cluster_order named vector to map arbitrary ancestry-component labels ('pop1') onto meaningful ones
+#' @param label_pops should population labels be drawn?
+#' @param label_ind should individuals be labelled along x-axis (probaly not, if more than a few samples)
+#' @param nudge extra buffer around population labels
+#' @param ymax how much extra space to allow for population labels; about 1.5 is probably enough
+#' @param ... extra arguments, ignored
+#' 
+#' @export
+plot_admixture_labelled <- function(Q, sort_order = NULL, pop_order = NULL, cluster_order = NULL, label_pops = TRUE, label_ind = FALSE, nudge = 0.05, ymax = 1.5, ...) {
+	
+	if (inherits(Q, "admixture_Q"))
+		qq <- tidy.admixture_Q(Q, ...)
+	else
+		qq <- tibble::as_tibble(Q)
+	
+	if (!is.null(cluster_order)) {
+		qq$variable <- factor(qq$variable, labels = cluster_order)
+		if (!is.null(names(cluster_order))) {
+			levels(qq$variable) <- names(cluster_order)
+		} else {
+			levels(qq$variable) <- cluster_order
+		}
+	} else {
+		qq$variable <- factor(qq$variable)
+	}
+	if (!is.null(sort_order)) {
+		qq$iid <- factor(qq$iid, sort_order)
+	} else {
+		qq$iid <- factor(qq$iid)
+		sort_order <- levels(qq$iid)
+	}
+	if (!is.null(pop_order)) {
+		qq$pop <- factor(qq$pop, levels = pop_order)
+	} else {
+		qq$pop <- factor(qq$pop)
+		pop_order <- levels(qq$pop)
+	}
+	
+	qq <- dplyr::arrange(qq, variable)
+	qq1 <- subset(qq, as.numeric(variable) == 1)
+	so <- with(qq1, order(pop, iid))
+	new_so <- as.character(qq1$iid[so])
+	qq$iid <- factor(qq$iid, new_so)
+	qq1$iid <- factor(qq1$iid, new_so)
+	qq1 <- dplyr::arrange(qq1, iid)
+	
+	pop_labs <- pop_order
+	nudge_by <- length(new_so)*nudge
+	pop_spacing <- (length(new_so)-nudge_by)/length(pop_labs)
+	pop_pos <- (seq_along(pop_labs)-1)*pop_spacing+nudge_by
+	#print(setNames(pop_pos, pop_labs))
+	first_ind <- sapply(pop_labs, function(f) min(which(qq1$pop == f)))
+	
+	#print(first_ind)
+	pop_df <- tibble::tibble(pop = pop_labs,
+							 pos = pop_pos,
+							 first = first_ind)
+	
+	p0 <- ggplot2::ggplot(qq) +
+		ggplot2::geom_bar(ggplot2::aes(x = iid, y = value, fill = variable), stat = "identity") +
+		ggplot2::geom_segment(data = pop_df, 
+							  ggplot2::aes(x = first-1, xend = first-1, y = 0, yend = 1)) +
+		ggplot2::scale_y_continuous(limits = c(0, ymax),
+									breaks = c(0, 0.5, 1.0)) +
+		theme_admixture()
+	
+	if (label_pops) {
+		p0 <- p0 +
+			ggplot2::geom_text(data = pop_df, 
+							   ggplot2::aes(x = pos, y = 1.2, label = pop),
+							   angle = 90, hjust = 0, nudge_x = 0.05, nudge_y = 0.02) +
+			ggplot2::geom_segment(data = pop_df, 
+								  ggplot2::aes(x = pos, xend = first-1, y = 1.2, yend = 1.0))
+	}
+	
+	if (!label_ind)
 		p0 <- p0 +
 		ggplot2::theme(axis.ticks.x = ggplot2::element_blank(),
 					   axis.text.x = ggplot2::element_blank())

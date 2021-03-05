@@ -4,7 +4,7 @@
 \alias{scale_shape_repeater}
 \title{Discrete scale of different point shapes that repeats}
 \usage{
-scale_shape_repeater(...)
+scale_shape_repeater(..., filled = FALSE)
 }
 \arguments{
 \item{...}{passed through to underlying \code{ggplot2::scale_...()} functions}

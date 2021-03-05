@@ -1,6 +1,6 @@
 Package: popcorn
 Title: File-Format Wrangler for Population-Based Genetic Data
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: person("Andrew", "Morgan", email = "andrew.parker.morgan@gmail.com", role = c("aut", "cre"))
 Description: Suite of utilities for reading and manipulating files associated
     with PLINK, ADMIXTURE, TreeMix &c. At this point it's largely mouse-centric.
