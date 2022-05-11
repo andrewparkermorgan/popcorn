@@ -263,12 +263,14 @@ plot_admixture <- function(Q, label = FALSE, sort_order = NULL, pop_order = NULL
 #' @param cluster_order named vector to map arbitrary ancestry-component labels ('pop1') onto meaningful ones
 #' @param label_pops should population labels be drawn?
 #' @param label_ind should individuals be labelled along x-axis (probaly not, if more than a few samples)
+#' @param label_size text size for population labels
 #' @param nudge extra buffer around population labels
 #' @param ymax how much extra space to allow for population labels; about 1.5 is probably enough
 #' @param ... extra arguments, ignored
 #' 
 #' @export
-plot_admixture_labelled <- function(Q, sort_order = NULL, pop_order = NULL, cluster_order = NULL, label_pops = TRUE, label_ind = FALSE, nudge = 0.05, ymax = 1.5, ...) {
+plot_admixture_labelled <- function(Q, sort_order = NULL, pop_order = NULL, cluster_order = NULL, label_pops = TRUE,
+									label_size = 3, opaque_labs = FALSE, label_ind = FALSE, nudge = 0.05, ymax = 1.5, ...) {
 	
 	if (inherits(Q, "admixture_Q"))
 		qq <- tidy.admixture_Q(Q, ...)
@@ -312,33 +314,51 @@ plot_admixture_labelled <- function(Q, sort_order = NULL, pop_order = NULL, clus
 	pop_pos <- (seq_along(pop_labs)-1)*pop_spacing+nudge_by
 	#print(setNames(pop_pos, pop_labs))
 	first_ind <- sapply(pop_labs, function(f) min(which(qq1$pop == f)))
+	last_ind <- sapply(pop_labs, function(f) max(which(qq1$pop == f)))
 	
 	#print(first_ind)
 	pop_df <- tibble::tibble(pop = pop_labs,
 							 pos = pop_pos,
-							 first = first_ind)
+							 first = first_ind,
+							 last = last_ind)
 	
 	p0 <- ggplot2::ggplot(qq) +
 		ggplot2::geom_bar(ggplot2::aes(x = iid, y = value, fill = variable), stat = "identity") +
 		ggplot2::geom_segment(data = pop_df, 
-							  ggplot2::aes(x = first-1, xend = first-1, y = 0, yend = 1)) +
+							  ggplot2::aes(x = first-1, xend = first-1, y = 0, yend = 1),
+							  colour = "grey60") +
 		ggplot2::scale_y_continuous(limits = c(0, ymax),
 									breaks = c(0, 0.5, 1.0)) +
 		theme_admixture()
 	
 	if (label_pops) {
+		if (opaque_labs) {
+			p0 <- p0 +
+				ggplot2::geom_label(data = pop_df, 
+									ggplot2::aes(x = pos, y = 1.2, label = pop),
+									fill = "white", label.r = ggplot2::unit(0, "points"),
+									angle = 90, hjust = 0, nudge_x = 0.05, nudge_y = 0.02, size = label_size)
+		}
+		else {
+			p0 <- p0 +
+				ggplot2::geom_text(data = pop_df,
+								   ggplot2::aes(x = pos, y = 1.2, label = pop),
+								   angle = 90, hjust = 0, nudge_x = 0.05, nudge_y = 0.02, size = label_size)
+		}
 		p0 <- p0 +
-			ggplot2::geom_text(data = pop_df, 
-							   ggplot2::aes(x = pos, y = 1.2, label = pop),
-							   angle = 90, hjust = 0, nudge_x = 0.05, nudge_y = 0.02) +
 			ggplot2::geom_segment(data = pop_df, 
-								  ggplot2::aes(x = pos, xend = first-1, y = 1.2, yend = 1.0))
+								  ggplot2::aes(x = pos, xend = first-1, y = 1.2, yend = 1.0),
+								  colour = "grey60")
 	}
 	
 	if (!label_ind)
 		p0 <- p0 +
 		ggplot2::theme(axis.ticks.x = ggplot2::element_blank(),
 					   axis.text.x = ggplot2::element_blank())
+	
+	if (label_pops) {
+		attr(p0, "pop_labels") <- pop_df
+	}
 	
 	return(p0)
 	

@@ -33,7 +33,7 @@ read_treemix <- function(stem, ...) {
 	e <- read.table(gzfile(e), as.is  = TRUE, comment.char = "", quote = "")
 	
 	e[,3] <- e[,3]*e[,4]
-	e[,3] <- e[,3]*e[,4]
+	#e[,3] <- e[,3]*e[,4]
 	
 	tree <- ape::read.tree(text = readLines(gzfile(ff[3]), n = 1))
 	
@@ -101,22 +101,22 @@ plot_treemix <- function(obj, plot.nodes = TRUE, plot.migration = TRUE, branch.c
 		ggplot2::scale_x_continuous() +
 		ggplot2::xlab("\ndrift parameter")
 	
+	if (plot.migration && nrow(subset(stuff$edges, type == "MIG"))) {
+		p <- p + ggplot2::geom_curve(data = subset(stuff$edges, type == "MIG"),
+									 ggplot2::aes(x = from.x, y = from.y, xend = to.x, yend = to.y, colour = weight),
+									 curvature = 0.25,
+									 arrow = grid::arrow(length = grid::unit(6, "points"), type = "closed"),
+									 alpha = 0.5) +
+			ggplot2::geom_point(data = subset(stuff$edges, type == "MIG"),
+								ggplot2::aes(x = from.x, y = from.y, colour = weight)) +
+			ggplot2::scale_colour_gradient2("migration weight", high = "red", mid = "yellow")
+}
+	
 	if (label)
 		p <- p + ggplot2::geom_text(ggplot2::aes(x = xo, y = y, label = pop), hjust = 0)
 	
 	if (plot.nodes)
 		p <- p + ggplot2::geom_point(data = d, ggplot2::aes(x = x, y = y))
-	
-	if (plot.migration && nrow(subset(stuff$edges, type == "MIG"))) {
-		p <- p + ggplot2::geom_curve(data = subset(stuff$edges, type == "MIG"),
-									 ggplot2::aes(x = from.x, y = from.y, xend = to.x, yend = to.y, colour = weight),
-							curvature = 0.25,
-							arrow = grid::arrow(length = grid::unit(6, "points"), type = "closed"),
-							alpha = 0.5) +
-			ggplot2::geom_point(data = subset(stuff$edges, type == "MIG"),
-								ggplot2::aes(x = from.x, y = from.y, colour = weight)) +
-			ggplot2::scale_colour_gradient2("migration weight", high = "red", mid = "yellow")
-	}
 	
 	attr(p, "tips") <- tibble::as_tibble(stuff$tips)
 	return(p)
