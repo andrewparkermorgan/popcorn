@@ -4,8 +4,7 @@
 \alias{read_coverage}
 \title{Read output from my \code{coverage.py} script}
 \usage{
-read_coverage(path, scrub = TRUE, as.ranges = FALSE, has.MQ0 = FALSE,
-  ...)
+read_coverage(path, scrub = TRUE, as.ranges = FALSE, has.MQ0 = FALSE, ...)
 }
 \arguments{
 \item{path}{name of file to read}

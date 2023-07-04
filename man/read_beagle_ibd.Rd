@@ -4,8 +4,7 @@
 \alias{read_beagle_ibd}
 \title{Read BEAGLE-format IBD segments}
 \usage{
-read_beagle_ibd(ff, map = NULL, expand = FALSE, as.ranges = FALSE,
-  ...)
+read_beagle_ibd(ff, map = NULL, expand = FALSE, as.ranges = FALSE, ...)
 }
 \description{
 Read BEAGLE-format IBD segments

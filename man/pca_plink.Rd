@@ -4,8 +4,14 @@
 \alias{pca_plink}
 \title{Perform PCA using `plink2`}
 \usage{
-pca_plink(bfile, skeleton = NULL, samples = NULL, max_missing = 0,
-  min_maf = 0, ...)
+pca_plink(
+  bfile,
+  skeleton = NULL,
+  samples = NULL,
+  max_missing = 0,
+  min_maf = 0,
+  ...
+)
 }
 \arguments{
 \item{skeleton}{optional character vector fo sample IDs to use for constructing PCs}

@@ -4,9 +4,19 @@
 \alias{plot_admixture_labelled}
 \title{Make stacked-bar plot of ancestry proportions, with population labels}
 \usage{
-plot_admixture_labelled(Q, sort_order = NULL, pop_order = NULL,
-  cluster_order = NULL, label_pops = TRUE, label_ind = FALSE,
-  nudge = 0.05, ymax = 1.5, ...)
+plot_admixture_labelled(
+  Q,
+  sort_order = NULL,
+  pop_order = NULL,
+  cluster_order = NULL,
+  label_pops = TRUE,
+  label_size = 3,
+  opaque_labs = FALSE,
+  label_ind = FALSE,
+  nudge = 0.05,
+  ymax = 1.5,
+  ...
+)
 }
 \arguments{
 \item{Q}{a matrix of admixture proportions, melted or not; must have a column `pop` with population labels}
@@ -18,6 +28,8 @@ plot_admixture_labelled(Q, sort_order = NULL, pop_order = NULL,
 \item{cluster_order}{named vector to map arbitrary ancestry-component labels ('pop1') onto meaningful ones}
 
 \item{label_pops}{should population labels be drawn?}
+
+\item{label_size}{text size for population labels}
 
 \item{label_ind}{should individuals be labelled along x-axis (probaly not, if more than a few samples)}
 

@@ -4,8 +4,7 @@
 \alias{plot_admixture}
 \title{Make standard stacked-bars plot of ancestry proportions.}
 \usage{
-plot_admixture(Q, label = FALSE, sort_order = NULL, pop_order = NULL,
-  ...)
+plot_admixture(Q, label = FALSE, sort_order = NULL, pop_order = NULL, ...)
 }
 \arguments{
 \item{Q}{a matrix of admixture proportions, melted or not}

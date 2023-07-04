@@ -4,8 +4,14 @@
 \alias{.sort_indiv}
 \title{Internal helper function for sorting rows in ADMIXTURE Q-matrix}
 \usage{
-.sort_indiv(dframe = NULL, grplab = NA, selgrp = NA, sortind = NA,
-  grplabpos = NA, linepos = NA)
+.sort_indiv(
+  dframe = NULL,
+  grplab = NA,
+  selgrp = NA,
+  sortind = NA,
+  grplabpos = NA,
+  linepos = NA
+)
 }
 \description{
 Internal helper function for sorting rows in ADMIXTURE Q-matrix

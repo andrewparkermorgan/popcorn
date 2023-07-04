@@ -78,10 +78,12 @@ read_treemix <- function(stem, ...) {
 #' @param plot.nodes show dots for internal and leaf nodes of population tree
 #' @param plot.migration show migration edges as curved arrows
 #' @param branch.colour colour to use when drawing edges of population tree
-#' @return a \code{ggplot2} plot
+#' @param branch.width weight of drift edges of population tree
+#' @return A \code{ggplot2} plot, with dataframes fo tips and edges of tree returned as attributes \code{attr(,"tips")}
+#'     and \code{attr(,"edges)} respectively
 #' 
 #' @export
-plot_treemix <- function(obj, plot.nodes = TRUE, plot.migration = TRUE, branch.colour = "grey", label = TRUE, ...) {
+plot_treemix <- function(obj, plot.nodes = TRUE, plot.migration = TRUE, branch.colour = "grey", branch.width = 0.5, label = TRUE, ...) {
 	
 	if (is.null(obj[["layout"]]))
 		obj <- .prep.layout(obj)
@@ -97,7 +99,8 @@ plot_treemix <- function(obj, plot.nodes = TRUE, plot.migration = TRUE, branch.c
 	p <- ggplot2::ggplot(stuff$tips) +
 		ggplot2::geom_segment(data = subset(stuff$edges, type == "NOT_MIG"),
 							  ggplot2::aes(x = from.x, y = from.y, xend = to.x, yend = to.y),
-					 colour = branch.colour) +
+					 colour = branch.colour,
+					 size = branch.width) +
 		ggplot2::scale_x_continuous() +
 		ggplot2::xlab("\ndrift parameter")
 	
@@ -119,6 +122,7 @@ plot_treemix <- function(obj, plot.nodes = TRUE, plot.migration = TRUE, branch.c
 		p <- p + ggplot2::geom_point(data = d, ggplot2::aes(x = x, y = y))
 	
 	attr(p, "tips") <- tibble::as_tibble(stuff$tips)
+	attr(p, "edges") <- tibble::as_tibble(stuff$edges)
 	return(p)
 	
 }
