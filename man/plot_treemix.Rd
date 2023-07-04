@@ -27,7 +27,7 @@ plot_treemix(
 }
 \value{
 A \code{ggplot2} plot, with dataframes fo tips and edges of tree returned as attributes \code{attr(,"tips")}
-    and \code{attr(,"edges)} respectively
+    and \code{attr(,"edges")} respectively
 }
 \description{
 Plot population tree

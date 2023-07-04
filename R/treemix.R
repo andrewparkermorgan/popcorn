@@ -80,7 +80,7 @@ read_treemix <- function(stem, ...) {
 #' @param branch.colour colour to use when drawing edges of population tree
 #' @param branch.width weight of drift edges of population tree
 #' @return A \code{ggplot2} plot, with dataframes fo tips and edges of tree returned as attributes \code{attr(,"tips")}
-#'     and \code{attr(,"edges)} respectively
+#'     and \code{attr(,"edges")} respectively
 #' 
 #' @export
 plot_treemix <- function(obj, plot.nodes = TRUE, plot.migration = TRUE, branch.colour = "grey", branch.width = 0.5, label = TRUE, ...) {
